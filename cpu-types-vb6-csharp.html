@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>50 Years of CPU Type Sizes — C, VB6, C#</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Barlow+Condensed:wght@300;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c0f;
+    --bg2: #0f1318;
+    --grid-line: #1a1f28;
+    --border: #242b38;
+    --amber: #e8a020;
+    --amber-dim: #7a5010;
+    --amber-glow: rgba(232,160,32,0.14);
+    --cyan: #20c8d0;
+    --red: #e05040;
+    --red-glow: rgba(224,80,64,0.11);
+    --green: #50c878;
+    --purple: #a070e8;
+    --purple-dim: #3e2070;
+    --purple-glow: rgba(160,112,232,0.13);
+    --mint: #30dba8;
+    --mint-dim: #0e5840;
+    --mint-glow: rgba(48,219,168,0.13);
+    --muted: #4a5568;
+    --text: #c8d4e0;
+    --text-dim: #5a6880;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    min-height: 100vh;
+    padding: 32px 20px 80px;
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 39px, var(--grid-line) 39px, var(--grid-line) 40px),
+      repeating-linear-gradient(90deg, transparent, transparent 39px, var(--grid-line) 39px, var(--grid-line) 40px);
+  }
+
+  .main { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 44px; }
+
+  header { border-left: 3px solid var(--amber); padding-left: 20px; }
+  header h1 {
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 900;
+    font-size: clamp(24px, 4vw, 48px); text-transform: uppercase;
+    color: #fff; line-height: 1; letter-spacing: -0.5px;
+  }
+  header p { margin-top: 8px; font-size: 11px; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; }
+
+  .section-label {
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+    font-size: 11px; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 12px;
+  }
+  .lc { color: var(--cyan); } .lvb { color: var(--purple); }
+  .lcs { color: var(--mint); } .la { color: var(--amber); }
+  .lg { color: var(--green); } .lr { color: var(--red); }
+
+  /* ===== LEGEND ===== */
+  .legend { display: flex; gap: 18px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 7px; font-size: 10px; color: var(--text-dim); letter-spacing: 0.5px; }
+  .ldot { width: 10px; height: 10px; border-radius: 1px; flex-shrink: 0; }
+
+  /* ===== SCROLLABLE GRID WRAPPER ===== */
+  .grid-scroll { overflow-x: auto; }
+
+  /* ===== ERA / TYPE GRIDS =====
+     Columns: [label] [16-bit] [32-bit] [VB6] [C#] [64-Unix] [64-Win]
+  */
+  .era-grid, .type-grid {
+    display: grid;
+    grid-template-columns: 100px repeat(6, minmax(130px, 1fr));
+    gap: 5px;
+    min-width: 900px;
+  }
+
+  /* ERA CARDS */
+  .era-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-top: 3px solid var(--amber-dim); padding: 12px 12px 10px;
+    transition: border-color .15s, background .15s; cursor: default;
+  }
+  .era-card:hover        { border-top-color: var(--amber); background: var(--amber-glow); }
+  .era-card.vb6col       { border-top-color: var(--purple-dim); }
+  .era-card.vb6col:hover { border-top-color: var(--purple); background: var(--purple-glow); }
+  .era-card.cscol        { border-top-color: var(--mint-dim); }
+  .era-card.cscol:hover  { border-top-color: var(--mint); background: var(--mint-glow); }
+
+  .era-name { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 17px; text-transform: uppercase; color: #fff; }
+  .era-year { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+  .era-note { font-size: 9px; color: var(--muted); margin-top: 6px; line-height: 1.4; }
+
+  /* TYPE LABEL */
+  .type-label {
+    display: flex; align-items: center;
+    font-size: 11px; font-weight: 700; color: var(--cyan); padding-right: 6px; letter-spacing: 0.5px;
+  }
+
+  /* CELLS */
+  .cell {
+    position: relative; background: var(--bg2); border: 1px solid var(--border);
+    padding: 9px 10px; display: flex; flex-direction: column;
+    justify-content: center; gap: 3px; min-height: 62px; transition: all .15s;
+  }
+  .cell:hover { z-index: 10; }
+  .cell.stable  { opacity: .58; }
+  .cell.changed { border-color: var(--amber); background: var(--amber-glow); opacity: 1; }
+  .cell.split   { border-color: var(--red);   background: var(--red-glow);   opacity: 1; }
+  .cell.na      { opacity: .22; }
+
+  /* VB6 cells */
+  .cell.vb { border-color: var(--purple-dim); background: rgba(160,112,232,.07); opacity: 1; }
+  .cell.vb.ok   { border-color: var(--purple); background: var(--purple-glow); }
+  .cell.vb.trap { border-color: var(--red);    background: var(--red-glow); }
+  .cell.vb.trap .bit-bar { background: var(--red); }
+  .cell.vb.ok   .bit-bar { background: var(--purple); }
+
+  /* C# cells */
+  .cell.cs { border-color: var(--mint-dim); background: rgba(48,219,168,.07); opacity: 1; }
+  .cell.cs.ok   { border-color: var(--mint); background: var(--mint-glow); }
+  .cell.cs.trap { border-color: var(--red);  background: var(--red-glow); }
+  .cell.cs.win  { border-color: var(--mint); background: var(--mint-glow); } /* highlight: solves the problem */
+  .cell.cs.trap .bit-bar { background: var(--red); }
+  .cell.cs.ok   .bit-bar { background: var(--mint); }
+  .cell.cs.win  .bit-bar { background: var(--mint); }
+
+  .cell-bits  { font-size: 14px; font-weight: 700; font-family: 'Barlow Condensed', sans-serif; color: #fff; line-height: 1; }
+  .cell-bytes { font-size: 9px; color: var(--text-dim); letter-spacing: .3px; }
+  .cell-lang  { font-size: 11px; font-weight: 700; margin-bottom: 1px; }
+  .cell-lang.vb-name { color: var(--purple); }
+  .cell-lang.cs-name { color: var(--mint); }
+  .cell-lang.trap    { color: var(--red); }
+  .cell-lang.win-name { color: var(--mint); }
+
+  .bit-bar-wrap { height: 5px; background: var(--grid-line); border-radius: 1px; overflow: hidden; margin-top: 3px; }
+  .bit-bar { height: 100%; background: var(--cyan); border-radius: 1px; transition: width .3s; }
+  .cell.changed .bit-bar { background: var(--amber); }
+  .cell.split   .bit-bar { background: var(--red); }
+
+  /* Badges */
+  .badge {
+    position: absolute; top: -1px; right: -1px;
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+    font-size: 8px; letter-spacing: 1px; text-transform: uppercase; padding: 2px 4px;
+  }
+  .b-changed { background: var(--amber); color: #000; }
+  .b-split   { background: var(--red);   color: #fff; }
+  .b-vb      { background: var(--purple); color: #fff; }
+  .b-cs      { background: var(--mint);   color: #000; }
+  .b-trap    { background: var(--red);    color: #fff; }
+  .b-ok      { background: var(--green);  color: #000; }
+  .b-win     { background: var(--mint);   color: #000; }
+
+  /* Tooltip */
+  .cell:hover .tip { display: block; }
+  .tip {
+    display: none; position: absolute; bottom: calc(100% + 6px); left: 50%;
+    transform: translateX(-50%); background: #1c2330; border: 1px solid var(--border);
+    padding: 9px 13px; font-size: 10px; color: var(--text); white-space: nowrap;
+    z-index: 30; line-height: 1.65; pointer-events: none; box-shadow: 0 4px 28px rgba(0,0,0,.75);
+  }
+  .tip::after {
+    content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+    border: 5px solid transparent; border-top-color: var(--border);
+  }
+  .tip .tr { color: var(--red); font-weight: 700; }
+  .tip .ok { color: var(--green); }
+  .tip .mn { color: var(--mint); }
+
+  /* ===== LONG SPLIT BOX ===== */
+  .split-box {
+    background: var(--bg2); border: 1px solid var(--red); border-left: 3px solid var(--red);
+    padding: 18px 22px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;
+  }
+  .split-box h3 {
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+    font-size: 13px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--red); margin-bottom: 0; grid-column: 1/-1;
+  }
+  .split-col strong { font-size: 11px; color: var(--text); letter-spacing: .5px; display: block; margin-bottom: 5px; }
+  .split-col p { font-size: 10px; color: var(--text-dim); line-height: 1.5; }
+  .split-col .result { margin-top: 8px; font-size: 10px; font-weight: 700; }
+
+  /* ===== NAME TRAP BOX ===== */
+  .trap-box {
+    background: var(--bg2); border: 1px solid var(--red); border-left: 3px solid var(--red);
+    padding: 20px 24px;
+  }
+  .trap-box h3 {
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+    font-size: 13px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--red); margin-bottom: 16px;
+  }
+  .trap-outer { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .trap-item { display: flex; flex-direction: column; gap: 5px; }
+  .trap-row {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--bg); border: 1px solid var(--border); padding: 9px 12px;
+  }
+  .ttag {
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+    font-size: 11px; letter-spacing: 1px; text-transform: uppercase; padding: 2px 6px;
+  }
+  .ttag-vb  { background: var(--purple); color: #fff; }
+  .ttag-cs  { background: var(--mint);   color: #000; }
+  .ttag-c   { background: var(--cyan);   color: #000; }
+  .ttag-x   { background: var(--red);    color: #fff; }
+  .tname { font-size: 13px; font-weight: 700; color: #fff; font-family: 'Barlow Condensed', sans-serif; }
+  .tname.bad { color: var(--red); }
+  .tname.good { color: var(--green); }
+  .tsize { margin-left: auto; font-size: 9px; color: var(--text-dim); }
+  .tarrow { text-align: center; font-size: 16px; color: var(--border); }
+  .tdesc { font-size: 10px; color: var(--text-dim); line-height: 1.5; margin-top: 2px; }
+  .twarn { font-size: 10px; color: var(--red); margin-top: 3px; line-height: 1.4; }
+  .tfix  { font-size: 10px; color: var(--green); margin-top: 3px; line-height: 1.4; }
+
+  /* ===== LANGUAGE-ONLY TYPES ===== */
+  .lang-types-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+
+  .ltype-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-top: 3px solid var(--border); padding: 11px 13px; position: relative;
+  }
+  .ltype-card.vb-card { border-top-color: var(--purple-dim); }
+  .ltype-card.cs-card { border-top-color: var(--mint-dim); }
+  .ltype-name { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 15px; letter-spacing: .5px; }
+  .ltype-name.vb { color: var(--purple); } .ltype-name.cs { color: var(--mint); }
+  .ltype-size { font-size: 12px; font-weight: 700; font-family: 'Barlow Condensed', sans-serif; color: #fff; margin-top: 3px; }
+  .ltype-equiv { font-size: 9px; margin-top: 3px; }
+  .ltype-equiv.c  { color: var(--cyan); }
+  .ltype-equiv.vb { color: var(--purple); }
+  .ltype-equiv.cs { color: var(--mint); }
+  .ltype-note { font-size: 9px; color: var(--text-dim); margin-top: 4px; line-height: 1.4; }
+  .ltype-bar  { height: 4px; background: var(--grid-line); border-radius: 1px; overflow: hidden; margin-top: 8px; }
+  .ltype-fill { height: 100%; border-radius: 1px; }
+  .fill-vb { background: var(--purple); } .fill-cs { background: var(--mint); }
+  .fill-muted { background: var(--muted); }
+
+  /* ===== FIXED WIDTH ===== */
+  .fixed-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+  .fixed-card {
+    background: var(--bg2); border: 1px solid var(--border); border-left: 3px solid var(--green);
+    padding: 11px 13px;
+  }
+  .fixed-type { font-size: 13px; font-weight: 700; color: var(--green); margin-bottom: 4px; }
+  .fixed-row  { font-size: 9px; color: var(--text-dim); line-height: 1.7; }
+  .fixed-row span.vb { color: var(--purple); } .fixed-row span.cs { color: var(--mint); }
+  .fixed-bar-wrap { height: 4px; background: var(--grid-line); border-radius: 1px; overflow: hidden; margin-top: 8px; }
+  .fixed-bar { height: 100%; background: var(--green); border-radius: 1px; }
+
+  footer { border-top: 1px solid var(--border); padding-top: 20px; font-size: 10px; color: var(--text-dim); line-height: 1.9; }
+
+  @media (max-width: 720px) {
+    .trap-outer { grid-template-columns: 1fr; }
+    .split-box  { grid-template-columns: 1fr; }
+    .lang-types-grid { grid-template-columns: 1fr 1fr; }
+    .fixed-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="main">
+
+  <!-- HEADER -->
+  <header>
+    <h1>50 Years of CPU Type Sizes<br>
+      <span style="color:var(--purple)">+ VB6</span>
+      <span style="color:var(--text-dim)"> &amp; </span>
+      <span style="color:var(--mint)">+ C#</span>
+    </h1>
+    <p>C integer types, eras, VB6 naming traps, and how C# fixed the ambiguity</p>
+  </header>
+
+  <!-- LEGEND -->
+  <div>
+    <div class="section-label la">Legend</div>
+    <div class="legend">
+      <div class="legend-item"><div class="ldot" style="background:var(--cyan)"></div> C type — unchanged</div>
+      <div class="legend-item"><div class="ldot" style="background:var(--amber)"></div> C type — grew</div>
+      <div class="legend-item"><div class="ldot" style="background:var(--red)"></div> C type — split (Unix vs Windows) / naming trap</div>
+      <div class="legend-item"><div class="ldot" style="background:var(--purple)"></div> VB6 type — safe match</div>
+      <div class="legend-item"><div class="ldot" style="background:var(--mint)"></div> C# type — CLR-guaranteed, no platform variation</div>
+      <div class="legend-item"><div class="ldot" style="background:var(--grid-line);border:1px solid var(--border)"></div> Doesn't exist in this era</div>
+    </div>
+  </div>
+
+  <!-- ERA HEADERS -->
+  <div>
+    <div class="section-label la">Eras · scroll right if needed →</div>
+    <div class="grid-scroll">
+    <div class="era-grid">
+      <div></div>
+      <div class="era-card">
+        <div class="era-name">16-bit</div>
+        <div class="era-year">~1978 – 1985</div>
+        <div class="era-note">8086 era. DOS. Everything cramped.</div>
+      </div>
+      <div class="era-card">
+        <div class="era-name">32-bit</div>
+        <div class="era-year">~1985 – 2003</div>
+        <div class="era-note">386 era. Windows 95. The Big Growth.</div>
+      </div>
+      <div class="era-card vb6col">
+        <div class="era-name" style="color:var(--purple)">VB6</div>
+        <div class="era-year" style="color:var(--purple-dim)">~1998 – 2008</div>
+        <div class="era-note">Always 32-bit. Never got a 64-bit version. Types fixed by the language, not the CPU.</div>
+      </div>
+      <div class="era-card cscol">
+        <div class="era-name" style="color:var(--mint)">C# / .NET</div>
+        <div class="era-year" style="color:var(--mint-dim)">~2002 – present</div>
+        <div class="era-note">Types fixed by the CLR spec. int is <em>always</em> 32 bits, long is <em>always</em> 64 bits. No platform variation.</div>
+      </div>
+      <div class="era-card">
+        <div class="era-name">64-bit<br><span style="font-size:11px;font-weight:300">Unix/Linux/Mac</span></div>
+        <div class="era-year">~2003 – present</div>
+        <div class="era-note">"Match the hardware." <code>long</code> grows to 64.</div>
+      </div>
+      <div class="era-card">
+        <div class="era-name">64-bit<br><span style="font-size:11px;font-weight:300">Windows</span></div>
+        <div class="era-year">~2003 – present</div>
+        <div class="era-note">"Protect old code." <code>long</code> stays 32.</div>
+      </div>
+    </div>
+    </div>
+  </div>
+
+  <!-- MAIN TYPE GRID -->
+  <div>
+    <div class="section-label lc">C Types — with VB6 and C# columns · hover any cell for context</div>
+    <div class="grid-scroll">
+    <div class="type-grid">
+
+      <!-- ── char / Byte / byte ── -->
+      <div class="type-label">char</div>
+      <div class="cell stable">
+        <div class="cell-bits">8 <span style="font-size:9px;color:var(--text-dim)">bits</span></div>
+        <div class="cell-bytes">1 byte</div>
+        <div class="bit-bar-wrap"><div class="bit-bar" style="width:12.5%"></div></div>
+        <div class="tip">C char: 8 bits in every era.<br>May be signed or unsigned — compiler decides.</div>
+      </div>
+      <div class="cell stable">
+        <div class="cell-bits">8 <span style="font-size:9px;color:var(--text-dim)">bits</span></div>
+        <div class="cell-bytes">1 byte</div>
+        <div class="bit-bar-wrap"><div class="bit-bar" style="width:12.5%"></div></div>
+        <div class="tip">C char: still 8 bits. The rock of the C type system.</div>
+      </div>
+      <!-- VB6 -->
+      <div class="cell vb ok">
+        <span class="badge b-ok">MATCH</span>
+        <div class="cell-lang vb-name">Byte</div>
+        <div class="cell-bits">8 <span style="font-size:9px;color:var(--text-dim)">bits</span></div>
+        <div class="cell-bytes">unsigned · 0–255</div>
+        <div class="bit-bar-wrap"><div class="bit-bar" style="width:12.5%"></div></div>
+        <div class="tip">VB6 Byte = 8 bits, always unsigned.<br><span class="ok">Matches C unsigned char / uint8_t.</span><br>C char may be signed; VB6 Byte never is.</div>
+      </div>
+      <!-- C# -->
+      <div class="cell cs ok">
+        <span class="badge b-cs">C#</span>
+        <div class="cell-lang cs-name">byte / sbyte</div>
+        <div class="cell-bits">8 <span style="font-size:9px;color:var(--text-dim)">bits</span></div>
+        <div class="cell-bytes">byte: 0–255 · sbyte: −128–127</div>
+        <div class="bit-bar-wrap"><div class="bit-bar" style="width:12.5%"></div></div>
+        <div class="tip">C# byte = uint8_t, sbyte = int8_t.<br><span class="mn">Explicit signed/unsigned pair. CLR guaranteed.</span><br>Note: C# <em>char</em> is NOT 8 bits — see row below.</div>
+      </div>
+      <div class="cell stable">
+        <div class="cell-bits">8 <span style="font-size:9px;color:var(--text-dim)">bits</span></div>
+        <div class="cell-bytes">1 byte</div>
+        <div class="bit-bar-wrap"><div class="bit-bar" style="width:12.5%"></div></div>
+        <div class="tip">C char: unchanged on 64-bit Unix.</div>
+      </div>
+      <div class="cell stable">
+        <div class="cell-bits">8 <span style="font-size:9px;color:var(--text-dim)">bits</span></div>
+        <div class="cell-bytes">1 byte</div>
+        <div class="bit-bar-wrap"><div class="bit-bar" style="width:12.5%"></div></div>
+        <div class="tip">C char: unchanged on 64-bit Windows.</div>
+      </div>
+
+      <!-- ── C# char (special row — no C equivalent) ── -->
+      <div class="type-label" style="color:var(--mint);font-size:10px">char<br><span style="color:var(--text-dim);font-size:9px">(C# only)</span></div>
+      <div class="cell na"><div class="cell-bits" style="color:var(--text-dim)">—</div><div class="tip">C# char didn't exist yet.</div></div>
+      <div class="cell na"><div class="cell-bits" style="color:var(--text-dim)">—</div><div class="tip">C# char didn't exist yet.</div></div>
+      <div class="cell na">
+        <div class="cell-bits" style="color:var(--text-dim)">—</div>
+        <div class="cell-bytes">VB6 had no char type</div>
+        <div class="tip">VB6 had no char type. A single character<br>was a String of length 1.</div>
+      </div>
+      <div class="cell cs trap">
+        <span class="badge b-trap">TRAP</span>
+        <div class="cell-lang trap">char</div>
+        <div class="cell-bits">16 <span style="font-size:9px;color:var(--text-dim)">bits</span></div>
+        <div class="cell-bytes">UTF-16 code unit</div>
+        <div class="bit-bar-wrap"><div class="bit-bar" style="width:25%"></div></div>
+        <div class="tip">C# char = 16 bits (System.Char, UTF-16).<br><span class="tr">⚠ NOT 8 bits like C char.</span><br>Holds one Unicode code unit, not one byte.<br>C devs: never assume C# char == C char.</div>
+      </div>
+      <div class="cell na"><div class="cell-bits" style="color:var(--text-dim)">—</div><div class="tip">No C equivalent for 16-bit char. Use wchar_t or uint16_t.</div></div>
+      <div class="cell na"><div class="cell-bits" style="color:var(--text-dim)">—</div><div class="tip">No C equivalent for 16-bit char. Use wchar_t or uint16_t.</div></div>
+
+      <!-- ── short / Integer / short ── -->
+      <div class="type-label">short</div>
+      <div class="cell stable">
+        <div class="cell-bits">16 <span style="font-size:9px;color:var(--text-dim)">bits</span></div>
+        <div class="cell-bytes">2 bytes</div>
+        <div class="bit-bar-wrap"><div class="bit-bar" style="width:25%"></div></div>
+        <div class="tip">short: 16 bits. Was the size of C int in this era.</div>
+      </div>
+      <div class="cell stable">
+        <div class="cell-bits">16 <span style="font-size:9px;color:var(--text-dim)">bits</span></div>
+        <div class="cell-bytes">2 bytes</div>
+        <div class="bit-bar-wrap"><div class="bit-bar" style="width:25%"></div></div>
+        <div class="tip">short: holds at 16 bits while int grew around it.</div>
+      </div>
+      <!-- VB6 -->
+      <div class="cell vb trap">
+        <span class="badge b-trap">NAME TRAP</span>
+        <div class="cell-lang trap">Integer</div>
+        <div class="cell-bits">16 <span style="font-size:9px;color:var(--text-dim)">bits</span></div>
+        <div class="cell-bytes">−32,768 to 32,767</div>
+        <div class="bit-bar-wrap"><div class="bit-bar" style="width:25%"></div></div>
+        <div class="tip">VB6 "Integer" = 16 bits.<br><span class="tr">⚠ NOT the same as C "int" (which is 32 bits).</span><br>VB6 Integer → C short / int16_t.</div>
+      </div>
+      <!-- C# -->
+      <div class="cell cs ok">
+        <span class="badge b-cs">C#</span>
+        <div class="cell-lang cs-name">short / ushort</div>
+        <div class="cell-bits">16 <span style="font-size:9px;color:var(--text-dim)">bits</span></div>
+        <div class="cell-bytes">signed · unsigned pair</div>
+        <div class="bit-bar-wrap"><div class="bit-bar" style="width:25%"></div></div>
+        <div class="tip">C# short = int16_t, ushort = uint16_t.<br><span class="mn">CLR-fixed at 16 bits. No platform variation.</span><br>Unlike C short, this is a guarantee.</div>
+      </div>
+      <div class="cell stable">
+        <div class="cell-bits">16 <span style="font-size:9px;color:var(--text-dim)">bits</span></div>
+        <div class="cell-bytes">2 bytes</div>
+        <div class="bit-bar-wrap"><div class="bit-bar" style="width:25%"></div></div>
+        <div class="tip">short: still 16 bits on 64-bit Unix.</div>
+      </div>
+      <div class="cell stable">
+        <div class="cell-bits">16 <span style="font-size:9px;color:var(--text-dim)">bits</span></div>
+        <div class="cell-bytes">2 bytes</div>
+        <div class="bit-bar-wrap"><div class="bit-bar" style="width:25%"></div></div>
+        <div class="tip">short: still 16 bits on 64-bit Windows.</div>
+      </div>
+
+      <!-- ── int / Long / int ── -->
+      <div class="type-label">int</div>
+      <div class="cell stable">
+        <div class="cell-bits">16 <span style="font-size:9px;color:var(--text-dim)">bits</span></div>
+        <div class="cell-bytes">max 32,767</div>
+        <div class="bit-bar-wrap"><div class="bit-bar" style="width:25%"></div></div>
+        <div class="tip">C int: starts at 16 bits.<br>32,767 wasn't enough to count screen pixels.</div>
+      </div>
+      <div class="cell changed">
+        <span class="badge b-changed">GREW</span>
+        <div class="cell-bits">32 <span style="font-size:9px;color:var(--text-dim)">bits</span></div>
+        <div class="cell-bytes">4 bytes · max ~2.1B</div>
+        <div class="bit-bar-wrap"><div class="bit-bar" style="width:50%"></div></div>
+        <div class="tip">int grew 16→32. "The Big Growth."<br>Everyone was rewriting for 32-bit anyway.</div>
+      </div>
+      <!-- VB6 -->
+      <div class="cell vb trap">
+        <span class="badge b-trap">NAME TRAP</span>
+        <div class="cell-lang trap">Long</div>
+        <div class="cell-bits">32 <span style="font-size:9px;color:var(--text-dim)">bits</span></div>
+        <div class="cell-bytes">−2,147,483,648 to 2,147,483,647</div>
+        <div class="bit-bar-wrap"><div class="bit-bar" style="width:50%"></div></div>
+        <div class="tip">VB6 "Long" = 32 bits.<br><span class="tr">⚠ The #1 porting trap. VB6 Long → C int / int32_t.</span><br>C "long" on Unix is 64 bits — double the size!</div>
+      </div>
+      <!-- C# -->
+      <div class="cell cs ok">
+        <span class="badge b-cs">C#</span>
+        <div class="cell-lang cs-name">int / uint</div>
+        <div class="cell-bits">32 <span style="font-size:9px;color:var(--text-dim)">bits</span></div>
+        <div class="cell-bytes">System.Int32 · always</div>
+        <div class="bit-bar-wrap"><div class="bit-bar" style="width:50%"></div></div>
+        <div class="tip">C# int = System.Int32 = always 32 bits.<br><span class="mn">CLR spec guarantees this on every platform.</span><br>Same as C int on modern platforms, but as a promise.</div>
+      </div>
+      <div class="cell stable">
+        <div class="cell-bits">32 <span style="font-size:9px;color:var(--text-dim)">bits</span></div>
+        <div class="cell-bytes">frozen here</div>
+        <div class="bit-bar-wrap"><div class="bit-bar" style="width:50%"></div></div>
+        <div class="tip">C int: frozen at 32 bits.<br>Billions of lines of code depend on this.<br>Moving it would shatter databases.</div>
+      </div>
+      <div class="cell stable">
+        <div class="cell-bits">32 <span style="font-size:9px;color:var(--text-dim)">bits</span></div>
+        <div class="cell-bytes">frozen here</div>
+        <div class="bit-bar-wrap"><div class="bit-bar" style="width:50%"></div></div>
+        <div class="tip">C int: frozen at 32 bits on Windows too.<br>"The Big Freeze" hit all platforms equally for int.</div>
+      </div>
+
+      <!-- ── long / (none) / long ── -->
+      <div class="type-label">long</div>
+      <div class="cell stable">
+        <div class="cell-bits">32 <span style="font-size:9px;color:var(--text-dim)">bits</span></div>
+        <div class="cell-bytes">4 bytes</div>
+        <div class="bit-bar-wrap"><div class="bit-bar" style="width:50%"></div></div>
+        <div class="tip">C long: 32 bits in early era. Was the "big number" type.</div>
+      </div>
+      <div class="cell stable">
+        <div class="cell-bits">32 <span style="font-size:9px;color:var(--text-dim)">bits</span></div>
+        <div class="cell-bytes">4 bytes</div>
+        <div class="bit-bar-wrap"><div class="bit-bar" style="width:50%"></div></div>
+        <div class="tip">C long: holds at 32 bits. Same size as int here.</div>
+      </div>
+      <!-- VB6 -->
+      <div class="cell na">
+        <div class="cell-bits" style="color:var(--text-dim)">—</div>
+        <div class="cell-bytes" style="font-size:9px">no VB6 equivalent</div>
+        <div class="tip">VB6 has no type named "long".<br>What C calls long, VB6 calls "Long" — but<br>that maps to C int, not C long. Confusing!</div>
+      </div>
+      <!-- C# -->
+      <div class="cell cs win">
+        <span class="badge b-win">SOLVES SPLIT</span>
+        <div class="cell-lang win-name">long / ulong</div>
+        <div class="cell-bits">64 <span style="font-size:9px;color:var(--text-dim)">bits</span></div>
+        <div class="cell-bytes">System.Int64 · always</div>
+        <div class="bit-bar-wrap"><div class="bit-bar" style="width:100%"></div></div>
+        <div class="tip">C# long = System.Int64 = always 64 bits.<br><span class="mn">This resolves the entire Unix/Windows C split.</span><br>No matter the platform, C# long is 64 bits.<br>The CLR spec simply decided and enforced it.</div>
+      </div>
+      <div class="cell changed">
+        <span class="badge b-changed">GREW</span>
+        <div class="cell-bits">64 <span style="font-size:9px;color:var(--text-dim)">bits</span></div>
+        <div class="cell-bytes">8 bytes · Unix/Linux/macOS</div>
+        <div class="bit-bar-wrap"><div class="bit-bar" style="width:100%"></div></div>
+        <div class="tip">C long grew to 64 bits on Unix.<br>"We're on 64-bit hardware, long should match."</div>
+      </div>
+      <div class="cell split">
+        <span class="badge b-split">SPLIT</span>
+        <div class="cell-bits">32 <span style="font-size:9px;color:var(--text-dim)">bits</span></div>
+        <div class="cell-bytes">4 bytes · Windows only</div>
+        <div class="bit-bar-wrap"><div class="bit-bar" style="width:50%"></div></div>
+        <div class="tip">C long: stays 32 bits on Windows.<br>"Too many apps rely on long=32.<br>Use long long instead."</div>
+      </div>
+
+      <!-- ── long long / (none) / — ── -->
+      <div class="type-label" style="font-size:10px">long<br>long</div>
+      <div class="cell na"><div class="cell-bits" style="color:var(--text-dim)">—</div><div class="tip">long long: not yet standardized.</div></div>
+      <div class="cell na"><div class="cell-bits" style="color:var(--text-dim)">—</div><div class="tip">long long: still not in the C standard.</div></div>
+      <div class="cell na">
+        <div class="cell-bits" style="color:var(--text-dim)">—</div>
+        <div class="cell-bytes" style="font-size:9px">not in classic VB6</div>
+        <div class="tip">VB6 had no 64-bit integer type.<br>VBA 7.0 (Office 2010+) added LongLong,<br>but classic VB6 never shipped it.</div>
+      </div>
+      <div class="cell cs ok">
+        <span class="badge b-cs">C#</span>
+        <div class="cell-lang cs-name">long covers this</div>
+        <div class="cell-bits">64 <span style="font-size:9px;color:var(--text-dim)">bits</span></div>
+        <div class="cell-bytes">System.Int64 · same type</div>
+        <div class="bit-bar-wrap"><div class="bit-bar" style="width:100%"></div></div>
+        <div class="tip">C# doesn't need "long long" — "long" is already<br>always 64 bits. No separate type required.</div>
+      </div>
+      <div class="cell stable">
+        <div class="cell-bits">64 <span style="font-size:9px;color:var(--text-dim)">bits</span></div>
+        <div class="cell-bytes">8 bytes (C99+)</div>
+        <div class="bit-bar-wrap"><div class="bit-bar" style="width:100%"></div></div>
+        <div class="tip">long long: standardized in C99.<br>On Unix, same size as long — less commonly needed.</div>
+      </div>
+      <div class="cell changed">
+        <span class="badge b-changed">KEY TYPE</span>
+        <div class="cell-bits">64 <span style="font-size:9px;color:var(--text-dim)">bits</span></div>
+        <div class="cell-bytes">8 bytes (C99+)</div>
+        <div class="bit-bar-wrap"><div class="bit-bar" style="width:100%"></div></div>
+        <div class="tip">long long: the Windows solution for 64-bit math<br>in C. Because long stayed 32, long long became<br>the only portable way to get 64 bits.</div>
+      </div>
+
+      <!-- ── pointer ── -->
+      <div class="type-label" style="font-size:10px">pointer<br>*</div>
+      <div class="cell stable">
+        <div class="cell-bits">16 <span style="font-size:9px;color:var(--text-dim)">bits</span></div>
+        <div class="cell-bytes">addresses up to 64 KB</div>
+        <div class="bit-bar-wrap"><div class="bit-bar" style="width:25%"></div></div>
+        <div class="tip">Pointer: 16 bits. The segmented memory era.<br>Could only address 64 KB of RAM directly.</div>
+      </div>
+      <div class="cell changed">
+        <span class="badge b-changed">GREW</span>
+        <div class="cell-bits">32 <span style="font-size:9px;color:var(--text-dim)">bits</span></div>
+        <div class="cell-bytes">addresses up to 4 GB</div>
+        <div class="bit-bar-wrap"><div class="bit-bar" style="width:50%"></div></div>
+        <div class="tip">Pointer grew to 32 bits.<br>This was the real reason for the 32-bit transition.</div>
+      </div>
+      <div class="cell vb ok">
+        <span class="badge b-ok">32-BIT ONLY</span>
+        <div class="cell-lang vb-name">Object / ObjPtr</div>
+        <div class="cell-bits">32 <span style="font-size:9px;color:var(--text-dim)">bits</span></div>
+        <div class="cell-bytes">COM pointer · ObjPtr → Long</div>
+        <div class="bit-bar-wrap"><div class="bit-bar" style="width:50%"></div></div>
+        <div class="tip">VB6 Object references are 32-bit COM pointers.<br>ObjPtr() returns a Long (32 bits).<br>VB6 was always 32-bit — pointers never grew.</div>
+      </div>
+      <div class="cell cs ok">
+        <span class="badge b-cs">C#</span>
+        <div class="cell-lang cs-name">nint / IntPtr</div>
+        <div class="cell-bits">32/64 <span style="font-size:9px;color:var(--text-dim)">bits</span></div>
+        <div class="cell-bytes">platform-sized · C# 9 / .NET 5+</div>
+        <div class="bit-bar-wrap"><div class="bit-bar" style="width:75%"></div></div>
+        <div class="tip">C# nint/IntPtr match the pointer size of the runtime.<br>32-bit on 32-bit .NET, 64-bit on 64-bit .NET.<br>nint added in C# 9 for native interop.<br>IntPtr existed since .NET 1.0 for P/Invoke.</div>
+      </div>
+      <div class="cell changed">
+        <span class="badge b-changed">GREW</span>
+        <div class="cell-bits">64 <span style="font-size:9px;color:var(--text-dim)">bits</span></div>
+        <div class="cell-bytes">~18 exabytes addressable</div>
+        <div class="bit-bar-wrap"><div class="bit-bar" style="width:100%"></div></div>
+        <div class="tip">Pointer grew to 64 bits on Unix/Linux/macOS.</div>
+      </div>
+      <div class="cell changed">
+        <span class="badge b-changed">GREW</span>
+        <div class="cell-bits">64 <span style="font-size:9px;color:var(--text-dim)">bits</span></div>
+        <div class="cell-bytes">~18 exabytes addressable</div>
+        <div class="bit-bar-wrap"><div class="bit-bar" style="width:100%"></div></div>
+        <div class="tip">Pointer grew to 64 bits on Windows too.<br>This one could not stay 32 — too little RAM.</div>
+      </div>
+
+    </div><!-- /type-grid -->
+    </div>
+  </div>
+
+  <!-- LONG SPLIT + C# RESOLUTION -->
+  <div>
+    <div class="section-label lr">The long Split — and how C# sidesteps it entirely</div>
+    <div class="split-box">
+      <h3>64-bit C: two philosophies, one headache · C#: just picks one and guarantees it</h3>
+      <div class="split-col">
+        <strong>🐧 C on Unix / Linux / macOS</strong>
+        <p>"We're on 64-bit hardware. <code>long</code> should match." Old code may break — deal with it.</p>
+        <div class="result" style="color:var(--amber)">C long = 64 bits</div>
+      </div>
+      <div class="split-col">
+        <strong>🪟 C on Windows</strong>
+        <p>"Too many corporate apps depend on long=32. We invented <code>long long</code> for 64-bit math instead."</p>
+        <div class="result" style="color:var(--red)">C long = 32 bits · long long = 64 bits</div>
+      </div>
+      <div class="split-col" style="border:1px solid var(--mint);padding:12px;background:var(--mint-glow)">
+        <strong style="color:var(--mint)">🟢 C# / .NET (all platforms)</strong>
+        <p>The CLR spec simply declares: <code>long</code> = System.Int64 = 64 bits. Always. On every OS. The runtime enforces it — it's not up to the compiler or platform.</p>
+        <div class="result" style="color:var(--mint)">C# long = 64 bits everywhere ✓</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAME TRAPS -->
+  <div>
+    <div class="section-label lr">Naming Traps — the ones that cause real bugs when crossing languages</div>
+    <div class="trap-box">
+      <h3>⚠ Type names that look the same but mean different things</h3>
+      <div class="trap-outer">
+
+        <!-- Trap 1: VB6 Integer -->
+        <div class="trap-item">
+          <div class="trap-row"><span class="ttag ttag-vb">VB6</span><span class="tname">Integer</span><span class="tsize">16 bits</span></div>
+          <div class="tarrow">↕ looks like ↕</div>
+          <div class="trap-row"><span class="ttag ttag-x">≠</span><span class="tname bad">C/C# int</span><span class="tsize">32 bits</span></div>
+          <div class="tarrow">↕ actually maps to ↕</div>
+          <div class="trap-row"><span class="ttag ttag-c">C99</span><span class="tname good">int16_t / short</span><span class="tsize">16 bits ✓</span></div>
+          <div class="twarn">VB6 "Integer" is half the size of C or C# "int". Porting without checking silently allows values the original type never could.</div>
+          <div class="tfix">C# "short" = 16 bits = exact VB6 Integer equivalent.</div>
+        </div>
+
+        <!-- Trap 2: VB6 Long -->
+        <div class="trap-item">
+          <div class="trap-row"><span class="ttag ttag-vb">VB6</span><span class="tname">Long</span><span class="tsize">32 bits</span></div>
+          <div class="tarrow">↕ looks like ↕</div>
+          <div class="trap-row"><span class="ttag ttag-x">≠</span><span class="tname bad">C long (Unix)</span><span class="tsize">64 bits</span></div>
+          <div class="tarrow">↕ actually maps to ↕</div>
+          <div class="trap-row"><span class="ttag ttag-c">C99</span><span class="tname good">int32_t / int</span><span class="tsize">32 bits ✓</span></div>
+          <div class="twarn">The #1 VB6→C porting bug. On Unix, C "long" is 64 bits. A VB6 Long must become C int32_t — not C long.</div>
+          <div class="tfix">C# "int" = 32 bits = exact VB6 Long equivalent.</div>
+        </div>
+
+        <!-- Trap 3: C# char -->
+        <div class="trap-item">
+          <div class="trap-row"><span class="ttag ttag-cs">C#</span><span class="tname">char</span><span class="tsize">16 bits</span></div>
+          <div class="tarrow">↕ looks like ↕</div>
+          <div class="trap-row"><span class="ttag ttag-x">≠</span><span class="tname bad">C char</span><span class="tsize">8 bits</span></div>
+          <div class="tarrow">↕ actually maps to ↕</div>
+          <div class="trap-row"><span class="ttag ttag-c">C</span><span class="tname good">uint16_t / wchar_t</span><span class="tsize">16 bits ✓</span></div>
+          <div class="twarn">C# char is a 16-bit UTF-16 code unit (System.Char). C char is an 8-bit byte. Interop code that assumes they're the same size will corrupt data.</div>
+          <div class="tfix">Use uint16_t or wchar_t in C when interfacing with C# char data.</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- LANGUAGE-ONLY TYPES: VB6 + C# -->
+  <div>
+    <div class="section-label" style="color:var(--text-dim)">
+      <span style="color:var(--purple)">VB6</span> &amp; <span style="color:var(--mint)">C#</span>
+      <span> — types with no direct C integer equivalent</span>
+    </div>
+    <div class="lang-types-grid">
+
+      <!-- VB6 Boolean -->
+      <div class="ltype-card vb-card">
+        <span class="badge b-trap" style="font-size:8px">QUIRKY</span>
+        <div class="ltype-name vb">VB6 Boolean</div>
+        <div class="ltype-size">16 bits</div>
+        <div class="ltype-equiv c">≈ C short (but −1 = True, 0 = False)</div>
+        <div class="ltype-note">True is −1 (all bits set), not 1. C's _Bool is 1 bit. COM defined VARIANT_TRUE as 0xFFFF. Never compare directly.</div>
+        <div class="ltype-bar"><div class="ltype-fill fill-vb" style="width:25%"></div></div>
+      </div>
+
+      <!-- C# bool -->
+      <div class="ltype-card cs-card">
+        <div class="ltype-name cs">C# bool</div>
+        <div class="ltype-size">8 bits (1 byte in memory)</div>
+        <div class="ltype-equiv c">≈ C _Bool / uint8_t</div>
+        <div class="ltype-note">Logically 1 bit, but stored as 1 byte by the CLR. True = 1, False = 0. Unlike VB6 Boolean — no −1 surprises.</div>
+        <div class="ltype-bar"><div class="ltype-fill fill-cs" style="width:12.5%"></div></div>
+      </div>
+
+      <!-- VB6 Single -->
+      <div class="ltype-card vb-card">
+        <div class="ltype-name vb">VB6 Single</div>
+        <div class="ltype-size">32 bits</div>
+        <div class="ltype-equiv c">= C float (IEEE 754)</div>
+        <div class="ltype-note">32-bit floating point. Direct match to C float. Not an integer type — fraction × exponent.</div>
+        <div class="ltype-bar"><div class="ltype-fill fill-vb" style="width:50%"></div></div>
+      </div>
+
+      <!-- C# float / double -->
+      <div class="ltype-card cs-card">
+        <div class="ltype-name cs">C# float / double</div>
+        <div class="ltype-size">32 / 64 bits</div>
+        <div class="ltype-equiv c">= C float / double (IEEE 754)</div>
+        <div class="ltype-note">float = System.Single (32-bit), double = System.Double (64-bit). Direct CLR-guaranteed matches to C's floating-point types.</div>
+        <div class="ltype-bar"><div class="ltype-fill fill-cs" style="width:75%"></div></div>
+      </div>
+
+      <!-- VB6 Currency -->
+      <div class="ltype-card vb-card">
+        <span class="badge b-vb" style="font-size:8px">VB6 ONLY</span>
+        <div class="ltype-name vb">VB6 Currency</div>
+        <div class="ltype-size">64 bits</div>
+        <div class="ltype-equiv c">≈ int64_t ÷ 10,000</div>
+        <div class="ltype-note">A 64-bit integer scaled by 10,000 to give 4 decimal places. C has no equivalent — use int64_t with manual scaling. C# replaced this with decimal.</div>
+        <div class="ltype-bar"><div class="ltype-fill fill-vb" style="width:100%"></div></div>
+      </div>
+
+      <!-- C# decimal -->
+      <div class="ltype-card cs-card">
+        <span class="badge b-cs" style="font-size:8px">C# ONLY</span>
+        <div class="ltype-name cs">C# decimal</div>
+        <div class="ltype-size">128 bits</div>
+        <div class="ltype-equiv c">no C equivalent</div>
+        <div class="ltype-note">System.Decimal: 96-bit integer + scale + sign. NOT IEEE 754. Avoids floating-point rounding for money math. C has nothing like it — would need a library.</div>
+        <div class="ltype-bar"><div class="ltype-fill fill-cs" style="width:100%;background:linear-gradient(90deg,var(--mint),#00a080)"></div></div>
+      </div>
+
+      <!-- VB6 Date -->
+      <div class="ltype-card vb-card">
+        <span class="badge b-vb" style="font-size:8px">VB6 ONLY</span>
+        <div class="ltype-name vb">VB6 Date</div>
+        <div class="ltype-size">64 bits</div>
+        <div class="ltype-equiv c">≈ C double (different epoch)</div>
+        <div class="ltype-note">Stored as a double. Integer part = days since Dec 30, 1899. C uses time_t: seconds since Jan 1, 1970. Same bit width, completely different meaning.</div>
+        <div class="ltype-bar"><div class="ltype-fill fill-vb" style="width:100%"></div></div>
+      </div>
+
+      <!-- VB6 Variant -->
+      <div class="ltype-card vb-card">
+        <span class="badge b-vb" style="font-size:8px">VB6 ONLY</span>
+        <div class="ltype-name vb">VB6 Variant</div>
+        <div class="ltype-size">16 bytes</div>
+        <div class="ltype-equiv c">≈ tagged union (no C equiv)</div>
+        <div class="ltype-note">2-byte type tag + 6 bytes reserved + 8 bytes data. Can hold any type at runtime. C# replaced this with object (reference) or generics.</div>
+        <div class="ltype-bar"><div class="ltype-fill fill-muted" style="width:100%"></div></div>
+      </div>
+
+      <!-- VB6 String -->
+      <div class="ltype-card vb-card">
+        <div class="ltype-name vb">VB6 String</div>
+        <div class="ltype-size">variable (BSTR)</div>
+        <div class="ltype-equiv c">≈ wchar_t* (not null-terminated)</div>
+        <div class="ltype-note">Length-prefixed UTF-16 (BSTR). C strings are null-terminated char arrays. C# string is a managed UTF-16 object. All three incompatible without marshalling.</div>
+        <div class="ltype-bar" style="background:repeating-linear-gradient(90deg,var(--purple) 0,var(--purple) 8px,transparent 8px,transparent 12px);height:4px;border-radius:1px;margin-top:8px"></div>
+      </div>
+
+      <!-- C# string -->
+      <div class="ltype-card cs-card">
+        <div class="ltype-name cs">C# string</div>
+        <div class="ltype-size">variable (managed heap)</div>
+        <div class="ltype-equiv vb">≈ VB6 String (UTF-16, not BSTR)</div>
+        <div class="ltype-note">Immutable sequence of UTF-16 chars on the managed heap. NOT null-terminated, NOT a BSTR. Interop with C requires Marshal.StringToHGlobalAnsi etc.</div>
+        <div class="ltype-bar" style="background:repeating-linear-gradient(90deg,var(--mint) 0,var(--mint) 8px,transparent 8px,transparent 12px);height:4px;border-radius:1px;margin-top:8px"></div>
+      </div>
+
+      <!-- C# object -->
+      <div class="ltype-card cs-card">
+        <div class="ltype-name cs">C# object</div>
+        <div class="ltype-size">pointer-sized reference</div>
+        <div class="ltype-equiv c">≈ void* (managed)</div>
+        <div class="ltype-note">System.Object: root of the C# type hierarchy. A reference (pointer) to a heap-managed object. C has no GC — you'd use void* and manage memory manually.</div>
+        <div class="ltype-bar"><div class="ltype-fill fill-cs" style="width:75%"></div></div>
+      </div>
+
+      <!-- C# nint -->
+      <div class="ltype-card cs-card">
+        <div class="ltype-name cs">C# nint / nuint</div>
+        <div class="ltype-size">32 or 64 bits</div>
+        <div class="ltype-equiv c">= C intptr_t / size_t</div>
+        <div class="ltype-note">Added in C# 9 / .NET 5. Platform-sized integers — 32-bit on 32-bit runtimes, 64-bit on 64-bit. Designed for native interop where pointer arithmetic is needed.</div>
+        <div class="ltype-bar"><div class="ltype-fill fill-cs" style="width:75%"></div></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FIXED-WIDTH TYPES -->
+  <div>
+    <div class="section-label lg">The C Fix — C99 Fixed-Width Types · use these when porting to or from VB6 / C#</div>
+    <div class="fixed-grid">
+      <div class="fixed-card">
+        <div class="fixed-type">uint8_t / int8_t</div>
+        <div class="fixed-row">Always 8 bits.</div>
+        <div class="fixed-row"><span class="vb">VB6 Byte → uint8_t ✓</span></div>
+        <div class="fixed-row"><span class="cs">C# byte → uint8_t · sbyte → int8_t ✓</span></div>
+        <div class="fixed-bar-wrap"><div class="fixed-bar" style="width:12.5%"></div></div>
+      </div>
+      <div class="fixed-card">
+        <div class="fixed-type">int16_t / uint16_t</div>
+        <div class="fixed-row">Always 16 bits.</div>
+        <div class="fixed-row"><span class="vb">VB6 Integer → int16_t ✓</span></div>
+        <div class="fixed-row"><span class="cs">C# short / ushort → int16_t / uint16_t ✓</span></div>
+        <div class="fixed-bar-wrap"><div class="fixed-bar" style="width:25%"></div></div>
+      </div>
+      <div class="fixed-card">
+        <div class="fixed-type">int32_t / uint32_t</div>
+        <div class="fixed-row">Always 32 bits.</div>
+        <div class="fixed-row"><span class="vb">VB6 Long → int32_t ✓ (NOT C long!)</span></div>
+        <div class="fixed-row"><span class="cs">C# int / uint → int32_t / uint32_t ✓</span></div>
+        <div class="fixed-bar-wrap"><div class="fixed-bar" style="width:50%"></div></div>
+      </div>
+      <div class="fixed-card">
+        <div class="fixed-type">int64_t / uint64_t</div>
+        <div class="fixed-row">Always 64 bits.</div>
+        <div class="fixed-row"><span class="vb">VB6 Currency (×10,000) · LongLong (VBA only)</span></div>
+        <div class="fixed-row"><span class="cs">C# long / ulong → int64_t / uint64_t ✓</span></div>
+        <div class="fixed-bar-wrap"><div class="fixed-bar" style="width:100%"></div></div>
+      </div>
+      <div class="fixed-card">
+        <div class="fixed-type">size_t</div>
+        <div class="fixed-row">Matches pointer width. Use for lengths & counts.</div>
+        <div class="fixed-row"><span class="cs">C# nint / nuint ≈ size_t in interop contexts</span></div>
+        <div class="fixed-bar-wrap"><div class="fixed-bar" style="width:75%"></div></div>
+      </div>
+      <div class="fixed-card">
+        <div class="fixed-type">uint16_t</div>
+        <div class="fixed-row">Always 16 bits, unsigned.</div>
+        <div class="fixed-row"><span class="cs">C# char → uint16_t in C interop ✓</span></div>
+        <div class="fixed-row" style="color:var(--red);font-size:9px">Never use C char (8-bit) for C# char data.</div>
+        <div class="fixed-bar-wrap"><div class="fixed-bar" style="width:25%"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <span style="color:var(--amber)">Notes:</span>
+    C# type sizes are guaranteed by the ECMA-334 / CLI spec, not by the platform — this is the key difference from C.
+    VB6 was 32-bit only (~1998–2008). VBA 7.0 (Office 2010+) added <code>LongLong</code> and <code>LongPtr</code> for 64-bit hosts.
+    C# <code>decimal</code> is 128-bit but not IEEE 754 — it's a high-precision base-10 type for financial math.
+    VB6 Boolean True = −1 due to COM's <code>VARIANT_TRUE = 0xFFFF</code>.
+    C99 fixed-width types: include <code>&lt;stdint.h&gt;</code> in C or <code>&lt;cstdint&gt;</code> in C++.
+    Grid column order: 16-bit C era · 32-bit C era · VB6 (always 32-bit) · C# (CLR-fixed) · 64-bit C Unix · 64-bit C Windows.
+  </footer>
+
+</div>
+</body>
+</html>
