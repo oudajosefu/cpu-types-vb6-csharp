@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>50 Years of CPU Type Sizes — C, VB6, C#</title>
+<!-- CPU SVG Icon -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%230a0c0f'/%3E%3Crect x='8' y='8' width='16' height='16' rx='2' fill='none' stroke='%23e8a020' stroke-width='2'/%3E%3Cline x1='12' y1='4' x2='12' y2='8' stroke='%2320c8d0' stroke-width='1.5'/%3E%3Cline x1='16' y1='4' x2='16' y2='8' stroke='%2320c8d0' stroke-width='1.5'/%3E%3Cline x1='20' y1='4' x2='20' y2='8' stroke='%2320c8d0' stroke-width='1.5'/%3E%3Cline x1='12' y1='24' x2='12' y2='28' stroke='%2320c8d0' stroke-width='1.5'/%3E%3Cline x1='16' y1='24' x2='16' y2='28' stroke='%2320c8d0' stroke-width='1.5'/%3E%3Cline x1='20' y1='24' x2='20' y2='28' stroke='%2320c8d0' stroke-width='1.5'/%3E%3Cline x1='4' y1='12' x2='8' y2='12' stroke='%23a070e8' stroke-width='1.5'/%3E%3Cline x1='4' y1='16' x2='8' y2='16' stroke='%23a070e8' stroke-width='1.5'/%3E%3Cline x1='4' y1='20' x2='8' y2='20' stroke='%23a070e8' stroke-width='1.5'/%3E%3Cline x1='24' y1='12' x2='28' y2='12' stroke='%2330dba8' stroke-width='1.5'/%3E%3Cline x1='24' y1='16' x2='28' y2='16' stroke='%2330dba8' stroke-width='1.5'/%3E%3Cline x1='24' y1='20' x2='28' y2='20' stroke='%2330dba8' stroke-width='1.5'/%3E%3C/svg%3E">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Barlow+Condensed:wght@300;500;700;900&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -44,7 +46,8 @@
 
   .main { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 44px; }
 
-  header { border-left: 3px solid var(--amber); padding-left: 20px; }
+  header { border-left: 3px solid var(--amber); padding-left: 20px; display: flex; align-items: center; gap: 18px; }
+  header .site-icon { flex-shrink: 0; width: 56px; height: 56px; }
   header h1 {
     font-family: 'Barlow Condensed', sans-serif; font-weight: 900;
     font-size: clamp(24px, 4vw, 48px); text-transform: uppercase;
@@ -272,12 +275,30 @@
 
   <!-- HEADER -->
   <header>
+    <svg class="site-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+      <rect width="32" height="32" rx="4" fill="#0a0c0f"/>
+      <rect x="8" y="8" width="16" height="16" rx="2" fill="none" stroke="#e8a020" stroke-width="2"/>
+      <line x1="12" y1="4" x2="12" y2="8" stroke="#20c8d0" stroke-width="1.5"/>
+      <line x1="16" y1="4" x2="16" y2="8" stroke="#20c8d0" stroke-width="1.5"/>
+      <line x1="20" y1="4" x2="20" y2="8" stroke="#20c8d0" stroke-width="1.5"/>
+      <line x1="12" y1="24" x2="12" y2="28" stroke="#20c8d0" stroke-width="1.5"/>
+      <line x1="16" y1="24" x2="16" y2="28" stroke="#20c8d0" stroke-width="1.5"/>
+      <line x1="20" y1="24" x2="20" y2="28" stroke="#20c8d0" stroke-width="1.5"/>
+      <line x1="4" y1="12" x2="8" y2="12" stroke="#a070e8" stroke-width="1.5"/>
+      <line x1="4" y1="16" x2="8" y2="16" stroke="#a070e8" stroke-width="1.5"/>
+      <line x1="4" y1="20" x2="8" y2="20" stroke="#a070e8" stroke-width="1.5"/>
+      <line x1="24" y1="12" x2="28" y2="12" stroke="#30dba8" stroke-width="1.5"/>
+      <line x1="24" y1="16" x2="28" y2="16" stroke="#30dba8" stroke-width="1.5"/>
+      <line x1="24" y1="20" x2="28" y2="20" stroke="#30dba8" stroke-width="1.5"/>
+    </svg>
+    <div>
     <h1>50 Years of CPU Type Sizes<br>
       <span style="color:var(--purple)">+ VB6</span>
       <span style="color:var(--text-dim)"> &amp; </span>
       <span style="color:var(--mint)">+ C#</span>
     </h1>
     <p>C integer types, eras, VB6 naming traps, and how C# fixed the ambiguity</p>
+    </div>
   </header>
 
   <!-- LEGEND -->
