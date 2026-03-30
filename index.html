@@ -155,21 +155,26 @@
   .b-ok      { background: var(--green);  color: #000; }
   .b-win     { background: var(--mint);   color: #000; }
 
-  /* Tooltip */
-  .cell:hover .tip { display: block; }
-  .tip {
-    display: none; position: absolute; bottom: calc(100% + 6px); left: 50%;
-    transform: translateX(-50%); background: #1c2330; border: 1px solid var(--border);
+  /* Tooltip — original tips stay hidden; floating clone used instead */
+  .tip { display: none; }
+
+  .floating-tip {
+    position: absolute; background: #1c2330; border: 1px solid var(--border);
     padding: 9px 13px; font-size: 10px; color: var(--text); white-space: nowrap;
-    z-index: 30; line-height: 1.65; pointer-events: none; box-shadow: 0 4px 28px rgba(0,0,0,.75);
+    z-index: 10000; line-height: 1.65; pointer-events: none;
+    box-shadow: 0 4px 28px rgba(0,0,0,.75);
+    font-family: 'Space Mono', monospace;
+    display: none;
   }
-  .tip::after {
-    content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
-    border: 5px solid transparent; border-top-color: var(--border);
+  .floating-tip::after {
+    content: ''; position: absolute; left: var(--arrow-left, 50%); transform: translateX(-50%);
+    border: 5px solid transparent;
   }
-  .tip .tr { color: var(--red); font-weight: 700; }
-  .tip .ok { color: var(--green); }
-  .tip .mn { color: var(--mint); }
+  .floating-tip.above::after { top: 100%; border-top-color: var(--border); }
+  .floating-tip.below::after { bottom: 100%; border-bottom-color: var(--border); }
+  .floating-tip .tr { color: var(--red); font-weight: 700; }
+  .floating-tip .ok { color: var(--green); }
+  .floating-tip .mn { color: var(--mint); }
 
   /* ===== LONG SPLIT BOX ===== */
   .split-box {
@@ -865,5 +870,60 @@
   </footer>
 
 </div>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const ft = document.createElement('div');
+  ft.className = 'floating-tip above';
+  document.body.appendChild(ft);
+
+  document.querySelectorAll('.cell').forEach(cell => {
+    const tip = cell.querySelector('.tip');
+    if (!tip) return;
+
+    cell.addEventListener('mouseenter', () => {
+      ft.innerHTML = tip.innerHTML;
+      ft.style.display = 'block';
+      ft.style.top = '0';
+      ft.style.left = '0';
+      ft.className = 'floating-tip above';
+      ft.style.removeProperty('--arrow-left');
+
+      const cr = cell.getBoundingClientRect();
+      const tr = ft.getBoundingClientRect();
+      const gap = 6;
+      const pad = 8;
+
+      /* vertical: prefer above, fall back to below */
+      let above = true;
+      let top = cr.top + window.scrollY - tr.height - gap;
+      if (cr.top - tr.height - gap < 0) {
+        top = cr.bottom + window.scrollY + gap;
+        above = false;
+      }
+      ft.className = above ? 'floating-tip above' : 'floating-tip below';
+
+      /* horizontal: center on cell, clamp to viewport */
+      const cellCenter = cr.left + cr.width / 2;
+      let left = cellCenter - tr.width / 2 + window.scrollX;
+      const maxLeft = document.documentElement.clientWidth + window.scrollX - tr.width - pad;
+      const minLeft = window.scrollX + pad;
+      if (left > maxLeft) left = maxLeft;
+      if (left < minLeft) left = minLeft;
+
+      /* keep arrow pointing at cell center */
+      const arrowLeft = cellCenter + window.scrollX - left;
+      const clampedArrow = Math.max(10, Math.min(arrowLeft, tr.width - 10));
+      ft.style.setProperty('--arrow-left', clampedArrow + 'px');
+
+      ft.style.top = top + 'px';
+      ft.style.left = left + 'px';
+    });
+
+    cell.addEventListener('mouseleave', () => {
+      ft.style.display = 'none';
+    });
+  });
+});
+</script>
 </body>
 </html>
