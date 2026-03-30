@@ -654,7 +654,7 @@
         <div class="trap-item">
           <div class="trap-row"><span class="ttag ttag-vb">VB6</span><span class="tname">Integer</span><span class="tsize">16 bits</span></div>
           <div class="tarrow">↕ looks like ↕</div>
-          <div class="trap-row"><span class="ttag ttag-x">≠</span><span class="tname bad">C/C# int</span><span class="tsize">32 bits</span></div>
+          <div class="trap-row"><span class="ttag ttag-x">≠</span><span class="ttag ttag-c">C</span><span class="ttag ttag-cs">C#</span><span class="tname bad">int</span><span class="tsize">32 bits</span></div>
           <div class="tarrow">↕ actually maps to ↕</div>
           <div class="trap-row"><span class="ttag ttag-c">C99</span><span class="tname good">int16_t / short</span><span class="tsize">16 bits ✓</span></div>
           <div class="twarn">VB6 "Integer" is half the size of C or C# "int". Porting without checking silently allows values the original type never could.</div>
@@ -665,7 +665,7 @@
         <div class="trap-item">
           <div class="trap-row"><span class="ttag ttag-vb">VB6</span><span class="tname">Long</span><span class="tsize">32 bits</span></div>
           <div class="tarrow">↕ looks like ↕</div>
-          <div class="trap-row"><span class="ttag ttag-x">≠</span><span class="tname bad">C long (Unix)</span><span class="tsize">64 bits</span></div>
+          <div class="trap-row"><span class="ttag ttag-x">≠</span><span class="ttag ttag-c">C</span><span class="tname bad">long (Unix)</span><span class="tsize">64 bits</span></div>
           <div class="tarrow">↕ actually maps to ↕</div>
           <div class="trap-row"><span class="ttag ttag-c">C99</span><span class="tname good">int32_t / int</span><span class="tsize">32 bits ✓</span></div>
           <div class="twarn">The #1 VB6→C porting bug. On Unix, C "long" is 64 bits. A VB6 Long must become C int32_t — not C long.</div>
@@ -676,7 +676,7 @@
         <div class="trap-item">
           <div class="trap-row"><span class="ttag ttag-cs">C#</span><span class="tname">char</span><span class="tsize">16 bits</span></div>
           <div class="tarrow">↕ looks like ↕</div>
-          <div class="trap-row"><span class="ttag ttag-x">≠</span><span class="tname bad">C char</span><span class="tsize">8 bits</span></div>
+          <div class="trap-row"><span class="ttag ttag-x">≠</span><span class="ttag ttag-c">C</span><span class="tname bad">char</span><span class="tsize">8 bits</span></div>
           <div class="tarrow">↕ actually maps to ↕</div>
           <div class="trap-row"><span class="ttag ttag-c">C</span><span class="tname good">uint16_t / wchar_t</span><span class="tsize">16 bits ✓</span></div>
           <div class="twarn">C# char is a 16-bit UTF-16 code unit (System.Char). C char is an 8-bit byte. Interop code that assumes they're the same size will corrupt data.</div>
